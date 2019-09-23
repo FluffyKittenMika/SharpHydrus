@@ -89,6 +89,62 @@ namespace SharpHydrus
 		}
 
 
+
+		/// <summary>
+		/// Fetch the file
+		/// </summary>
+		/// <param name="Filetype">Set it to use ID or file HASH</param>
+		/// <param name="ab"></param>
+		/// <returns>The requested file</returns>
+		public static Task<ResponseFile> Get_Files_File(FILETYPE Filetype, string HashOrID)
+		{
+			try
+			{
+				var url = _Server_Addr + "/get_files/file?";
+				switch (Filetype)
+				{
+					case FILETYPE.File_ID:
+						url += "file_id=" + HashOrID;
+						break;
+					case FILETYPE.File_Hash:
+						url += "hash=" + HashOrID;
+						break;
+					default:
+						break;
+				}
+
+				//fire off that file request
+				var request = (HttpWebRequest)WebRequest.Create(url + "&Hydrus-Client-API-Access-Key=" + _API_KEY);
+				request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+				var f = request.GetResponse();
+
+				//get filetype from stream data
+				string filetype = DetectImageType(f.GetResponseStream());
+
+
+				var reg = new Regex("\"[^\"]*\"");
+
+				var match = reg.Matches(f.Headers["Content-Disposition"])[0].Value.Replace("thumbnail", filetype).Trim('"');
+
+				ResponseFile response = new ResponseFile
+				{
+					FileByteStream = f.GetResponseStream(),
+					FileName = match
+				};
+
+
+				return Task.FromResult(response);
+
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e.Message + Environment.NewLine + e.StackTrace);
+				return null;
+			}
+
+		}
+
+
 		/// <summary>
 		/// Fetch the file tumbnail
 		/// </summary>
@@ -112,14 +168,17 @@ namespace SharpHydrus
 						break;
 				}
 
-				var request = (HttpWebRequest)WebRequest.Create(url + "&Hydrus-Client-API-Access-Key=7508d2fcad4b2577bbbbb04308c4eb077c94d32948a54f277c884d5d4366d1a7");
+				//fire off that thumbnail request
+				var request = (HttpWebRequest)WebRequest.Create(url + "&Hydrus-Client-API-Access-Key=" + _API_KEY);
 				request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
 				var f = request.GetResponse();
 
+				//get filetype from stream data
 				string filetype = DetectImageType(f.GetResponseStream());
 
 
 				var reg = new Regex("\"[^\"]*\"");
+
 				var match = reg.Matches(f.Headers["Content-Disposition"])[0].Value.Replace("thumbnail", filetype).Trim('"');
 
 				ResponseFile response = new ResponseFile
@@ -127,7 +186,6 @@ namespace SharpHydrus
 					FileByteStream = f.GetResponseStream(),
 					FileName = match
 				};
-
 
 
 				return Task.FromResult(response);
