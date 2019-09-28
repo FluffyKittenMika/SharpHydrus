@@ -33,9 +33,9 @@ namespace SharpHydrus
 		/// Gets the current API version
 		/// </summary>
 		/// <returns>API_VERSION</returns>
-		public static Task<API_VERSION> Get_Api_Version()
+		public static API_VERSION Get_Api_Version()
 		{
-			return Task.FromResult(JsonConvert.DeserializeObject<API_VERSION>(FetchJSON(Server_Addr + "/api_version").Result));
+			return JsonConvert.DeserializeObject<API_VERSION>(FetchJSON(Server_Addr + "/api_version"));
 		}
 
 		/// <summary>
@@ -53,20 +53,20 @@ namespace SharpHydrus
 		/// <param name="PermissionName">A descriptive name of the new permission</param>
 		/// <param name="permissions">Array of permissions for the new key</param>
 		/// <returns>ACCESS_KEY</returns>
-		public static Task<ACCESS_KEY> Request_New_Permissions(string PermissionName, int[] Permissions)
+		public static ACCESS_KEY Request_New_Permissions(string PermissionName, int[] Permissions)
 		{
 			string p = "[" + string.Join(",", Permissions) + "]";
-			string url = $"/request_access_permissions?name={PermissionName}&basic_permissions={p}";
-			return Task.FromResult(JsonConvert.DeserializeObject<ACCESS_KEY>(FetchJSON(_Server_Addr + url).Result));
+			string url = $"/request_new_permissions?name={PermissionName}&basic_permissions={p}";
+			return JsonConvert.DeserializeObject<ACCESS_KEY>(FetchJSON(_Server_Addr + url));
 		}
 
 		/// <summary>
 		/// Get a new session key.
 		/// </summary>
 		/// <returns>SESSION_KEY</returns>
-		public static Task<SESSION_KEY> Get_Session_Key()
+		public static SESSION_KEY Get_Session_Key()
 		{
-			return Task.FromResult(JsonConvert.DeserializeObject<SESSION_KEY>(FetchJSON(_Server_Addr + "/session_key?Hydrus-Client-API-Access-Key=" + API_KEY).Result));
+			return JsonConvert.DeserializeObject<SESSION_KEY>(FetchJSON(_Server_Addr + "/session_key?Hydrus-Client-API-Access-Key=" + API_KEY));
 		}
 
 		/// <summary>
@@ -74,7 +74,7 @@ namespace SharpHydrus
 		/// </summary>
 		/// <param name="key">Key to check, if none is set, it will check the API key, if that's not set, it will return null.</param>
 		/// <returns>VERIFICATION</returns>
-		public static Task<VERIFICATION> Verify_Access_Key(string key = null)
+		public static VERIFICATION Verify_Access_Key(string key = null)
 		{
 			var k = key;
 			if (k == null && API_KEY != null)
@@ -85,7 +85,7 @@ namespace SharpHydrus
 				return null;
 			}
 
-			return Task.FromResult(JsonConvert.DeserializeObject<VERIFICATION>(FetchJSON(_Server_Addr + "/verify_access_key?Hydrus-Client-API-Access-Key=" + k).Result));
+			return JsonConvert.DeserializeObject<VERIFICATION>(FetchJSON(_Server_Addr + "/verify_access_key?Hydrus-Client-API-Access-Key=" + k));
 		}
 
 
@@ -96,7 +96,7 @@ namespace SharpHydrus
 		/// <param name="Filetype">Set it to use ID or file HASH</param>
 		/// <param name="ab"></param>
 		/// <returns>The requested file</returns>
-		public static Task<ResponseFile> Get_Files_File(FILETYPE Filetype, string HashOrID)
+		public static ResponseFile Get_Files_File(FILETYPE Filetype, string HashOrID)
 		{
 			try
 			{
@@ -133,7 +133,7 @@ namespace SharpHydrus
 				};
 
 
-				return Task.FromResult(response);
+				return response;
 
 			}
 			catch (Exception e)
@@ -151,7 +151,7 @@ namespace SharpHydrus
 		/// <param name="Filetype">Set it to use ID or file HASH</param>
 		/// <param name="ab"></param>
 		/// <returns>A thumbnail file</returns>
-		public static Task<ResponseFile> Get_Files_Thumbnails(FILETYPE Filetype, string HashOrID)
+		public static ResponseFile Get_Files_Thumbnails(FILETYPE Filetype, string HashOrID)
 		{
 			try
 			{
@@ -188,7 +188,7 @@ namespace SharpHydrus
 				};
 
 
-				return Task.FromResult(response);
+				return response;
 
 			}
 			catch (Exception e)
@@ -205,13 +205,13 @@ namespace SharpHydrus
 		/// </summary>
 		/// <param name="URL">Target URL</param>
 		/// <returns>String</returns>
-		public static Task<string> FetchJSON(string URL)
+		public static string FetchJSON(string URL)
 		{
 			using (var client = new HttpClient())
 			{
 				try
 				{
-					var v = Task.FromResult(client.GetStringAsync(URL).Result);
+					var v = client.GetStringAsync(URL).Result;
 					client.Dispose();
 					return v;
 				}
@@ -219,7 +219,7 @@ namespace SharpHydrus
 				{
 					Console.WriteLine(e.Message + Environment.NewLine + e.StackTrace);
 					client.Dispose();
-					return null;
+					return "";
 				}
 
 			}
